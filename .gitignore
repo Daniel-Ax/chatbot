@@ -1,0 +1,10 @@
+*.pyc
+__pycache__/
+db.sqlite3
+config.json
+generation_config.json
+merges.txt
+model.safetensors
+special_tokens_map.json
+tokenizer_config.json
+vocab.json

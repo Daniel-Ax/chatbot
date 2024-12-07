@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #343541;
+            color: #FFFFFF;
+        }
+        #chat-box {
+            border: 1px solid #444654;
+            background-color: #40414F;
+            padding: 10px;
+            height: 400px;
+            overflow-y: scroll;
+            margin: 20px auto;
+            max-width: 600px;
+            border-radius: 10px;
+            color: #FFFFFF;
+        }
+        #chat-input {
+            width: calc(100% - 80px);
+            padding: 10px;
+            border: 1px solid #444654;
+            border-radius: 5px;
+            background-color: #40414F;
+            color: #FFFFFF;
+            margin: 10px 10px 10px auto;
+            display: inline-block;
+        }
+        #send-btn {
+            padding: 10px 20px;
+            background-color: #10A37F;
+            border: none;
+            border-radius: 5px;
+            color: #FFFFFF;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #send-btn:hover {
+            background-color: #0E8A6C;
+        }
+        h1 {
+            text-align: center;
+            color: #FFFFFF;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI ChaDbot</h1>
+    <div id="chat-box"></div>
+    <div style="text-align: center;">
+        <input type="text" id="chat-input" placeholder="Írj egy üzenetet...">
+        <button id="send-btn">Küldés</button>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+    // CSRF Token megszerzése
+    const getCsrfToken = () => {
+        const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+        return csrfTokenMeta ? csrfTokenMeta.content : '';
+    };
+
+    // Üzenetküldés logikája
+    sendBtn.addEventListener('click', () => {
+        const userMessage = chatInput.value.trim();
+        if (!userMessage) return;
+
+        // Hozzáadjuk a felhasználó üzenetét a chatboxhoz
+        const userBubble = document.createElement('div');
+        userBubble.textContent = `Te: ${userMessage}`;
+        userBubble.style.margin = '5px 0';
+        chatBox.appendChild(userBubble);
+
+        // Logikai hiba ellenőrzése a kérdés elküldése előtt
+        console.log("Küldésre váró kérdés:", userMessage);
+
+        // Üzenet küldése a szervernek
+        fetch('/response/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: new URLSearchParams({ question: userMessage }),
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Hiba történt a válasz lekérése közben.');
+            return response.json();
+        })
+        .then(data => {
+            const botBubble = document.createElement('div');
+            botBubble.textContent = `Chatbot: ${data.reply}`;
+            botBubble.style.margin = '5px 0';
+            botBubble.style.background = '#444654';
+            botBubble.style.padding = '5px';
+            botBubble.style.borderRadius = '5px';
+            chatBox.appendChild(botBubble);
+
+            // Görgetés a legutolsó üzenethez
+            chatBox.scrollTop = chatBox.scrollHeight;
+        })
+        .catch(error => {
+            const errorBubble = document.createElement('div');
+            errorBubble.textContent = 'Hiba történt a Chatbot válasz közben.';
+            errorBubble.style.color = 'red';
+            errorBubble.style.margin = '5px 0';
+            chatBox.appendChild(errorBubble);
+            console.error("Hiba:", error);
+        });
+
+        chatInput.value = '';  // Törli a beírt szöveget
+    });
+
+    // Enter billentyű esemény hozzáadása
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendBtn.click();
+        }
+    });
+
+    </script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</body>
+</html>
