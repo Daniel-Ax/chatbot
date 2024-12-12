@@ -6,8 +6,8 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 logger = logging.getLogger(__name__)
 
 # Modell és Tokenizer betöltése
-model = GPT2LMHeadModel.from_pretrained("gpt2")
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model = GPT2LMHeadModel.from_pretrained(r"C:\Users\finyw\chat_bot\model_train")
+tokenizer = GPT2Tokenizer.from_pretrained(r"C:\Users\finyw\chat_bot\model_train")
 
 def generate_response(question):
     try:
