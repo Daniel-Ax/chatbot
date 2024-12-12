@@ -8,3 +8,5 @@ model.safetensors
 special_tokens_map.json
 tokenizer_config.json
 vocab.json
+tokenizer.json
+training_args.bin
