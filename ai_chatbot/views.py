@@ -2,23 +2,21 @@ from django.http import JsonResponse
 import logging
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# Naplózó beállítása
+
 logger = logging.getLogger(__name__)
 
-# Modell és Tokenizer betöltése
-model = GPT2LMHeadModel.from_pretrained(r"C:\Users\finyw\chat_bot\model_train")
-tokenizer = GPT2Tokenizer.from_pretrained(r"C:\Users\finyw\chat_bot\model_train")
+model = GPT2LMHeadModel.from_pretrained(r"C:\Users\finyw\chat_bot\model_train\gpt2v2_finetuned")
+tokenizer = GPT2Tokenizer.from_pretrained(r"C:\Users\finyw\chat_bot\model_train\gpt2v2_finetuned")
 
 def generate_response(question):
     try:
-        # Pad token beállítása
         tokenizer.pad_token = tokenizer.eos_token
         inputs = tokenizer.encode(question, return_tensors="pt", padding=True, truncation=True)
         
-        # attention_mask és pad_token_id beállítása
+        
         attention_mask = inputs.ne(tokenizer.pad_token_id).float()
         
-        # Modell válasz generálása ismétlődés elleni paraméterekkel
+        
         outputs = model.generate(
             inputs, 
             max_length=100, 
@@ -32,7 +30,6 @@ def generate_response(question):
             repetition_penalty=1.2   # Bünteti az ismétlést
         )
         
-        # Válasz dekódolása
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         return response
     
