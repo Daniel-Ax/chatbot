@@ -13,9 +13,7 @@ def generate_response(question):
         tokenizer.pad_token = tokenizer.eos_token
         inputs = tokenizer.encode(question, return_tensors="pt", padding=True, truncation=True)
         
-        
         attention_mask = inputs.ne(tokenizer.pad_token_id).float()
-        
         
         outputs = model.generate(
             inputs, 
@@ -30,11 +28,19 @@ def generate_response(question):
             repetition_penalty=1.2   # Bünteti az ismétlést
         )
         
+        # Válasz dekódolása és tisztítása
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        return response
+        
+        # Tisztítsd meg a választ: töröld a kérdést, ha benne van
+        if question in response:
+            response = response.replace(question, "").strip()
+        
+        # Visszatérési érték csak a válasszal
+        return response.strip()
     
     except Exception as e:
         return f"Error: {str(e)}"
+
 
 
 def chatbot_response(request):
