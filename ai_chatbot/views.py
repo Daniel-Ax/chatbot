@@ -2,28 +2,40 @@ from django.http import JsonResponse
 import logging
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# Naplózó beállítása
+
 logger = logging.getLogger(__name__)
 
-# Modell és Tokenizer betöltése
-model = GPT2LMHeadModel.from_pretrained("gpt2")
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model = GPT2LMHeadModel.from_pretrained(r"C:\Users\finyw\chat_bot\model_train\gpt2v2_finetuned")
+tokenizer = GPT2Tokenizer.from_pretrained(r"C:\Users\finyw\chat_bot\model_train\gpt2v2_finetuned")
 
 def generate_response(question):
     try:
-        # Pad token beállítása
         tokenizer.pad_token = tokenizer.eos_token
         inputs = tokenizer.encode(question, return_tensors="pt", padding=True, truncation=True)
-        # attention_mask és pad_token_id beállítása
+        
+        
         attention_mask = inputs.ne(tokenizer.pad_token_id).float()
-        # Modell válasz generálása
-        outputs = model.generate(inputs, max_length=100, num_return_sequences=1, attention_mask=attention_mask, pad_token_id=tokenizer.eos_token_id)
+        
+        
+        outputs = model.generate(
+            inputs, 
+            max_length=100, 
+            num_return_sequences=1, 
+            attention_mask=attention_mask, 
+            pad_token_id=tokenizer.eos_token_id,
+            temperature=0.7,  # Lágyítja a valószínűségi eloszlást
+            top_k=50,         # Csak a legvalószínűbb 50 szót veszi figyelembe
+            top_p=0.9,        # Nucleus sampling 90%-os küszöbbel
+            no_repeat_ngram_size=2,  # Gátolja az ismétlődő n-gramokat
+            repetition_penalty=1.2   # Bünteti az ismétlést
+        )
+        
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         return response
-
+    
     except Exception as e:
-        logger.error(f"Generálási hiba: {str(e)}")
-        return None
+        return f"Error: {str(e)}"
+
 
 def chatbot_response(request):
     if request.method == "POST":
