@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 model = GPT2LMHeadModel.from_pretrained(r"C:\Users\finyw\chat_bot\model_train\gpt2v2_finetuned")
 tokenizer = GPT2Tokenizer.from_pretrained(r"C:\Users\finyw\chat_bot\model_train\gpt2v2_finetuned")
 
+import re  # A reguláris kifejezések kezeléséhez
+
 def generate_response(question):
     try:
         tokenizer.pad_token = tokenizer.eos_token
@@ -28,19 +30,19 @@ def generate_response(question):
             repetition_penalty=1.2   # Bünteti az ismétlést
         )
         
-        # Válasz dekódolása és tisztítása
+        # Válasz dekódolása
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        # Tisztítsd meg a választ: töröld a kérdést, ha benne van
-        if question in response:
-            response = response.replace(question, "").strip()
+        # Csak a "Response:" utáni részt válaszd ki
+        match = re.search(r"Response:\s*(.*?)(?:\.\s|\Z)", response)
+        if match:
+            clean_response = match.group(1).strip()
+            return clean_response
+        else:
+            return response.strip()  # Ha nincs "Response:", teljes választ ad vissza
         
-        # Visszatérési érték csak a válasszal
-        return response.strip()
-    
     except Exception as e:
         return f"Error: {str(e)}"
-
 
 
 def chatbot_response(request):
